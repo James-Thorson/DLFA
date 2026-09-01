@@ -5,6 +5,8 @@ library(tidyverse)
 sabie_rtmb_model <- readRDS(here("inputs", "5_rg_MltRel.RDS"))
 nsei             <- readRDS(here("inputs", "actual_report.rds"))
 nseidat          <- readRDS(here("inputs", "sablefish_data_19May2026.rds"))
+nseisdrep        <- readRDS(here("inputs", "v23_3f_3s_2016_NEW_FINAL.RDS"))
+wcsabie          <- readRDS(here("inputs", "wc_sabie.RDS"))
 
 # Years to retain
 years <- 1975:2025
@@ -56,6 +58,19 @@ rtmb_recdev <- make_ts(
 )
 
 
+# get rec devs and coerce
+recdevs <- sqrt(diag(sabie_rtmb_model$sd_rep$cov.fixed)[names(diag(sabie_rtmb_model$sd_rep$cov.fixed)) == 'ln_RecDevs'])
+recdevs_mat <- array(recdevs, dim = dim(sabie_rtmb_model$rep$ln_RecDevs))
+
+rtmb_recdev_se <- make_ts(
+  recdevs_mat[, rtmb_year_idx, drop = FALSE],
+  regions = regions_5,
+  years = years,
+  value_name = "RecDevs_SE"
+)
+
+
+
 # SS3 model -------------------------------------------------------------
 ss3_year_idx <- which(
   SPoRC::sgl_rg_wc_sablefish_data$years %in% years
@@ -78,6 +93,19 @@ ss3_age3 <- rowSums(
 
 ss3_recdev <- (ss3_age3 - mean(ss3_age3)) / sd(ss3_age3)
 
+# Get recruitment deviations (approximate for age-2)
+sr  <- wcsabie$sdrep
+map <- wcsabie$mapping$ln_RecDevs
+
+# SEs for the 50 estimated devs, in map-level order
+se_est <- sqrt(diag(sr$cov.fixed))[names(sr$par.fixed) == 'ln_RecDevs']
+
+# scatter back into the full-length vector; fixed devs get NA
+se_full <- rep(NA_real_, length(map))
+se_full[!is.na(map)] <- se_est[as.integer(map[!is.na(map)])]
+
+# now index by year
+ss3_recdev_se <- se_full[ss3_year_idx]
 
 # SS3 is Alaska-wide, so give it a single region ------------------------
 ss3_ts <- tibble(
@@ -85,18 +113,21 @@ ss3_ts <- tibble(
   Year     = ss3_years,
   Rec      = ss3_rec,
   SSB      = ss3_ssb,
-  RecDevs  = ss3_recdev
+  RecDevs  = ss3_recdev,
+  RecDevs_SE = ss3_recdev_se
 )
 
 
 # NSEI model ------------------------------------------------------------
+
+# get recdevs and coerce
 nsei_rec <- tibble(
   Region   = "CS",
   Year     = years,
   Rec      = nsei$pred_rec,
   SSB      = rowSums(nsei$spawn_biom)[-52],
-  RecDevs  = (nsei$pred_rec - mean(nsei$pred_rec)) /
-    sd(nsei$pred_rec)
+  RecDevs  = (nsei$pred_rec - mean(nsei$pred_rec)) / sd(nsei$pred_rec),
+  RecDevs_SE =  sqrt(diag(nseisdrep$rep$cov.fixed)[names(diag(nseisdrep$rep$cov.fixed)) == 'log_rec_devs'])
 )
 
 
@@ -104,8 +135,8 @@ nsei_rec <- tibble(
 ts_df <- bind_rows(
   rtmb_rec %>%
     left_join(rtmb_ssb, by = c("Region", "Year")) %>%
-    left_join(rtmb_recdev, by = c("Region", "Year")),
-
+    left_join(rtmb_recdev, by = c("Region", "Year")) %>%
+    left_join(rtmb_recdev_se, by = c("Region", "Year")),
   ss3_ts,
 
   nsei_rec

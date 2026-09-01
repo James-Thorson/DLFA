@@ -7,10 +7,17 @@ library(cowplot)
 # ---- Data ----------------------------------------------------------------
 
 long <- read.csv(here('outputs', 'ts_df.csv'))
-long <- subset(long, Year >= 1980 & Year <= 2023)
+long <- subset(long, Year >= 1990 & Year <= 2023)
 
 wide <- tapply(
   long$RecDevs,
+  INDEX = list(Year = long$Year, Region = long$Region),
+  FUN = mean
+)
+
+# matching SE matrix, same shape / ordering as `wide`
+wide_se <- tapply(
+  long$RecDevs_SE,
   INDEX = list(Year = long$Year, Region = long$Region),
   FUN = mean
 )
@@ -31,8 +38,18 @@ reg_levels <- reg_levels[reg_levels %in% regions]
 
 tsdat <- ts(cbind(wide, F1 = NA), start = min(yrs))
 
-# ---- Saturated model -----------------------------------------------------
+# SD matrix with a column for the latent factor (NA there)
+sd_mat <- cbind(wide_se, F1 = NA)
 
+# create family
+fam <- c(
+  lapply(regions, function(r) dsem::gaussian_fixed_sd(sd = wide_se[, r], link = 'identity')),
+  list(dsem::fixed())
+)
+
+names(fam) <- c(regions, "F1")
+
+# ---- Saturated model -----------------------------------------------------
 sem <- "
   F1 -> AI, 0, bAI_0
   F1 -> BS, 0, bBS_0
@@ -72,6 +89,7 @@ sem <- "
 fit <- dsem(
   tsdata = tsdat,
   sem = sem,
+  family = fam,
   control = dsem_control(trace = 1)
 )
 
@@ -122,6 +140,7 @@ step_fit <- dsem::stepwise_selection(
   model_options = model_options,
   model_shared  = model_shared,
   tsdata = tsdat,
+  family = fam,
   quiet = TRUE
 )
 
@@ -215,7 +234,7 @@ p_comp <- ggplot(plot_df, aes(x = Year)) +
   )) +
   labs(x = 'Year', y = "Standardized recruitment deviation",
        colour = 'Type', linetype = 'Type') +
-  theme_bw(base_size = 15) +
+  theme_bw(base_size = 17) +
   theme(legend.position = 'top')
 
 p_comp
@@ -251,7 +270,7 @@ coef_cmp <- grid %>%
   mutate(dropped  = is.na(Estimate),
          Estimate = ifelse(dropped, 0, Estimate))
 
-p_coef_cmp <- ggplot(coef_cmp,
+p_coef_cmp <- ggplot(coef_cmp %>% filter(Estimate != 0),
                      aes(x = lag, y = Estimate, colour = Model, shape = Model)) +
   geom_hline(yintercept = 0, lty = 3, colour = "grey60") +
   geom_pointrange(
@@ -259,18 +278,11 @@ p_coef_cmp <- ggplot(coef_cmp,
         ymax = Estimate + 1.96 * Std_Error),
     position = position_dodge(width = 0.4)
   ) +
-  geom_point(
-    data = subset(coef_cmp, dropped),
-    aes(x = lag, y = 0),
-    shape = 4, size = 2.5, stroke = 1,
-    position = position_dodge(width = 0.4),
-    show.legend = FALSE
-  ) +
   facet_wrap(~Region, ncol = 1) +
   scale_colour_manual(values = c("Saturated" = "#999999",
                                  "Selected"  = "#000000")) +
   labs(x = "Lag (years)", y = "Coefficient") +
-  theme_bw(base_size = 15) +
+  theme_bw(base_size = 17) +
   theme(legend.position = "top")
 
 p_coef_cmp
@@ -280,9 +292,10 @@ p_coef_cmp
 ggsave(
   filename = 'ts_lag_comp.png',
   plot = cowplot::plot_grid(p_comp, p_coef_cmp, ncol = 2,
-                            rel_widths = c(1.4, 1),
+                            label_size = 30,
                             labels = c("A", "B")),
-  width = 14, height = 16, dpi = 300
+  width = 14, height = 16, dpi = 300,
+  path = here('figs')
 )
 
 # ---- Correlations: does the lag structure help? --------------------------
@@ -291,5 +304,5 @@ cor_check <- data.frame(
   cor_factor = sapply(regions, function(r) cor(x, wide[, r], use = "complete.obs")),
   cor_conv   = sapply(regions, function(r) cor(conv[, r], wide[, r], use = "complete.obs"))
 )
-cor_check$gain <- cor_check$cor_conv - cor_check$cor_factor
-cor_check[order(-cor_check$gain), ]
+cor_check
+
