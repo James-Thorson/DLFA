@@ -69,7 +69,13 @@ for(ri in seq_len(nr)){
 par_true = simulator$obj$par
 true_df <- data.frame(
   par = factor(1:13),
-  par_true = as.numeric(par_true)   # drop the names attribute
+  par_true = as.numeric(par_true)
+)
+true_df$par_name = c(
+  paste0("b", 1:3, "-0"),
+  paste0("b", 1:3, "-1"),
+  paste0("b", 1:3, "-2"),
+  c( "sd_F", "sd1", "sd2", "sd3")
 )
 
 grid = expand.grid(
@@ -77,12 +83,13 @@ grid = expand.grid(
   rep = seq_len(nr)
 )
 grid$parhat = as.vector(sapply( fit_r, \(x) x$opt$par ))
+grid$par_name = true_df$par_name[grid$par]
 
-ggplot(grid, aes(x = factor(par), y = parhat)) +
+ggplot(grid, aes(x = par_name, y = parhat)) +
   geom_violin(fill = "grey80", trim = FALSE) +
   geom_boxplot(width = 0.1, outlier.shape = NA) +
   geom_point(
-    data = true_df, aes(x = par, y = par_true),
+    data = true_df, aes(x = par_name, y = par_true),
     shape = "-", size = 10, color = "red"
   ) +
   labs(x = "Parameter", y = "Value")
