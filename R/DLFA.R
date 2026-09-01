@@ -97,7 +97,9 @@ fit <- dsem(
   )
 )
 
-#
+summary(fit)
+
+# adding constraints on process error
 sem_constrained = paste0( sem,
 "
   AI <-> AI, 0, NA, 0.01
@@ -155,6 +157,9 @@ model_shared <- "
   F1 -> CS, 0, bCS_0
   F1 -> WC, 0, bWC_0
 
+  AI <-> AI, 0, NA, 0.01
+  BS <-> BS, 0, NA, 0.01
+
   F1 <-> F1, 0, NA, 1
 "
 
@@ -174,6 +179,7 @@ cat(step_fit$model)
 refit <- dsem(
   tsdata = tsdat,
   sem = step_fit$model,
+  family = fam,
   control = dsem_control(trace = 1, newton_loops = 3)
 )
 
@@ -181,7 +187,8 @@ s_step <- summary(refit)
 s_step
 
 refit$sdrep
-AIC(fit); AIC(refit)
+AIC(fit)
+AIC(refit)
 
 # ---- Extract the latent factor -------------------------------------------
 x_all <- refit$sdrep$par.random[names(refit$sdrep$par.random) == 'x_tj']
