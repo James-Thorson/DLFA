@@ -18,22 +18,22 @@ data = data.frame(
 )
 
 dynamics = "
-  F1 -> area1, 0, area1_0, 0.707
-  F1 -> area2, 0, area2_0, 0
+  F1 -> area1, 0, area1_0, 1
+  F1 -> area2, 0, area2_0, 0.5
   F1 -> area3, 0, area3_0, 0
 
-  F1 -> area1, 1, area1_1, 0
-  F1 -> area2, 1, area2_1, 0.707
-  F1 -> area3, 1, area3_1, 0
+  F1 -> area1, 1, area1_1, 0.5
+  F1 -> area2, 1, area2_1, 1
+  F1 -> area3, 1, area3_1, 0.5
 
   F1 -> area1, 2, area1_2, 0
-  F1 -> area2, 2, area2_2, 0
-  F1 -> area3, 2, area3_2, 0.707
+  F1 -> area2, 2, area2_2, 0.5
+  F1 -> area3, 2, area3_2, 1
 
-  F1 <-> F1, 0, sd_F1, 1
-  area1 <-> area1, 0, sd_area1, 0.707
-  area2 <-> area2, 0, sd_area2, 0.707
-  area3 <-> area3, 0, sd_area3, 0.707
+  F1 <-> F1, 0, NA, 1
+  area1 <-> area1, 0, sd_area1, 1
+  area2 <-> area2, 0, sd_area2, 1
+  area3 <-> area3, 0, sd_area3, 1
 "
 
 simulator = dsem(
@@ -68,14 +68,14 @@ for(ri in seq_len(nr)){
 
 par_true = simulator$obj$par
 true_df <- data.frame(
-  par = factor(1:13),
+  par = seq_along(par_true),
   par_true = as.numeric(par_true)
 )
 true_df$par_name = c(
   paste0("b", 1:3, "-0"),
   paste0("b", 1:3, "-1"),
   paste0("b", 1:3, "-2"),
-  c( "sd_F", "sd1", "sd2", "sd3")
+  c( "sd1", "sd2", "sd3")
 )
 
 grid = expand.grid(
