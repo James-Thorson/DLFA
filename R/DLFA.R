@@ -247,20 +247,20 @@ p_comp <- ggplot(plot_df, aes(x = Year)) +
              linewidth = 0.5, colour = "grey60") +
   geom_line(aes(y = obs,  colour = "Observed",    linetype = "Observed"),
             linewidth = 1.0) +
-  geom_line(aes(y = dlfa, colour = "DLFA",        linetype = "DLFA"),
+  geom_line(aes(y = dlfa, colour = "Latent Factor",        linetype = "Latent Factor"),
             linewidth = 1.1) +
-  geom_line(aes(y = conv, colour = "Convolution", linetype = "Convolution"),
+  geom_line(aes(y = conv, colour = "Convolution (DLFA)", linetype = "Convolution (DLFA)"),
             linewidth = 1.1) +
   facet_wrap(~Region, ncol = 1) +
   scale_colour_manual(values = c(
     "Observed"    = "#0072B2",
-    "DLFA"        = "#D55E00",
-    "Convolution" = "#333333"
+    "Latent Factor"        = "#D55E00",
+    "Convolution (DLFA)" = "#333333"
   )) +
   scale_linetype_manual(values = c(
     "Observed"    = "dashed",
-    "DLFA"        = "solid",
-    "Convolution" = "solid"
+    "Latent Factor"        = "solid",
+    "Convolution (DLFA)" = "solid"
   )) +
   labs(x = 'Year', y = "Standardized recruitment deviation",
        colour = 'Type', linetype = 'Type') +
@@ -309,8 +309,7 @@ p_coef_cmp <- ggplot(coef_cmp %>% filter(Estimate != 0),
     position = position_dodge(width = 0.4)
   ) +
   facet_wrap(~Region, ncol = 1) +
-  scale_colour_manual(values = c("Saturated" = "#999999",
-                                 "Selected"  = "#000000")) +
+  scale_colour_manual(values = c("Saturated" = "#999999", "Selected"  = "#000000")) +
   labs(x = "Lag (years)", y = "Coefficient") +
   theme_bw(base_size = 17) +
   theme(legend.position = "top")
