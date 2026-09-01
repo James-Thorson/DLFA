@@ -1,0 +1,323 @@
+\documentclass[12pt]{article}
+
+%---- Page and fonts --------------------------------------------------
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+%---- Math ------------------------------------------------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+
+\newcommand{\vect}[1]{\bm{#1}}              
+\newcommand{\mat}[1]{\bm{\mathrm{#1}}}      
+\newcommand{\T}{^{\top}}
+\DeclareMathOperator{\MVN}{MVN}
+\DeclareMathOperator{\diag}{diag}
+
+%---- Figures, tables, references -------------------------------------
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage{booktabs}
+\usepackage[round,authoryear]{natbib}
+\bibliographystyle{apalike}
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}                       
+
+%---- Submission formatting (comment out for a reading copy) ----------
+\usepackage{setspace}
+\doublespacing
+\usepackage{lineno}
+\linenumbers
+% lineno skips display equations. If a journal wants them numbered,
+% wrap each one in \begin{linenomath} ... \end{linenomath}.
+
+%---- Title and authors -----------------------------------------------
+\usepackage[affil-it]{authblk}
+
+\title{Introducing dynamic lagged factor analysis for fisheries ecologists}
+
+\author[1,2]{Matthew LH. Cheng}
+\author[3,4]{James T. Thorson}
+
+\affil[1]{College of Fisheries and Ocean Sciences, University of Alaska Fairbanks, Juneau, AK, USA}
+\affil[2]{Auke Bay Laboratories, Alaska Fisheries Science Center, National Marine Fisheries Service, NOAA, Juneau, AK 99801, USA}
+\affil[3]{Technical University of Denmark, Kongens Lyngby, Denmark}
+\affil[4]{Alaska Fisheries Science Center, National Marine Fisheries Service, NOAA, Seattle, WA, USA}
+
+%======================================================================
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+\end{abstract}
+
+\noindent\textbf{Keywords:} dynamic factor analysis; time-series; distributed lags; multivariate time series analysis
+
+\clearpage
+
+\section{Introduction}
+\label{sec:intro}
+\begin{itemize}
+\item Fish population processes (e.g., recruitment) covaries across regions and time, and understanding the shared drivers matters for projecting stocks
+\item Those drivers are rarely observed, and act with delays that may
+differ among regions
+\item DFA estimates unobserved common trends, but assumes every series
+responds at the same moment
+\item Distributed lag models estimate delayed responses, but require the
+driver to be measured
+\item Neither alone suffices when the driver is unobserved and the
+delays differ, so we introduce DLFA (used in econnemtrics fields, but not really in fisheries), demonstrated with sablefish
+recruitment across six regions
+\end{itemize}
+
+\section{Methods}
+\label{sec:methods}
+
+In this study, we introduce dynamic lagged factor analysis (DLFA), which combines two established modeling frameworks: dynamic factor analysis (DFA) and distributed lag (DL) regression. DFA estimates a small number of latent, unobserved time series that capture common temporal variation across a larger set of observed series. Distributed lag regression, in contrast, estimates how the effect of an observed driver is distributed across subsequent time steps. DLFA combines these approaches by simultaneously estimating latent common drivers (DFA) and the temporal response of each observed series to those drivers (DL). The result is a framework that can identify shared, unobserved drivers while allowing different observed series to respond over distinct temporal lags. In the following, we first describe the foundations of DFA, followed by distributed lag regression, and then show how these approaches can be combined to provide new ecological insights.
+
+\subsubsection{Dynamic factor analysis}
+
+Ecological time-series are rarely independent. As a motivating example, recruitment or
+abundance measured across neighboring regions often increase or decrease together, because each responds to influences they share (e.g., common prey fields or basin scale effects). While such effects are rarely measured and can be difficult to observe, their effects can potentially be estimated using DFA to understand the effect of shared factors on observed time-series. Let $y_{j,t}$ denote observation $j \in \{1,\dots,J\}$ at time
+$t \in \{1,\dots,T\}$. DFA represents these $J$ observed time-series
+using $F \le J$ latent trends $x_{f,t}$, $f \in \{1,\dots,F\}$:
+
+\begin{align}
+  y_{j,t} &= \mu_j + \sum_{f=1}^{F} \lambda_{j,f}\, x_{f,t}
+             + \epsilon_{j,t},
+  &\epsilon_{j,t} &\sim \mathrm{N}\!\left(0, \sigma_j^2\right)
+  \label{eq:dfa-obs} \\
+  x_{f,t} &= x_{f,t-1} + \eta_{f,t},
+  &\eta_{f,t} &\sim \mathrm{N}\!\left(0, 1\right)
+  \label{eq:dfa-trend}
+\end{align}
+where $\mu_j$ is a time-invariant intercept for series $j$;
+$\lambda_{j,f}$ is the loading of observed series $j$ onto latent
+factor $f$, described in a $J \times F$ matrix
+$\boldsymbol\Lambda = [\lambda_{j,f}]$; $\epsilon_{j,t}$ is
+measurement error with series-specific variance $\sigma_j^2$,
+independent across both series and time; and $\eta_{f,t}$ is the
+process error (``innovation") driving trend $f$, with independent errors
+across factors and time.  In most DFA applications, the variance of $\eta_{f,t}$ is often fixed at one, because $\lambda_{j,f}$ and $x_{f,t}$ are jointly identified only up to a multiplicative
+constant. Thus, this fixes the scale of each factor and leaves the loadings
+in the units of $y_{j,t}$. 
+
+\subsubsection{Distributed lag models}
+
+In general, ecological drivers can often act with a delay, and rarely with the same
+delay in every instance. For example, a warm year may depress fish recruitment somewhat in the
+following year and more strongly two years later, so that a single
+event in the driver produces a response spread across several
+subsequent years. As such, the response to a driver is likely some weighted average of previous effects, thereby motivating the use of distributed lag regression models, which can be described by the following:
+\begin{equation}
+  y_t = \sum_{\ell=0}^{L} \beta_\ell\, w_{t-\ell} + \epsilon_t,
+  \qquad \epsilon_t \sim \mathrm{N}\!\left(0, \sigma^2\right)
+  \label{eq:dl}
+\end{equation}
+where $y_t$ is an arbitrary response variable, $w_t$ is the observed driver at time $t$; $\ell$ indexes the delay between driver and response; $L$ is the longest delay
+considered; $\beta_\ell$ is the effect of the driver after a delay of
+$\ell$ time-steps; and $\epsilon_t$ is the residual error. The response variable $y_t$ can therefore be described by the summation of the observed drivers at multiple past time-steps. As such, DL regression answers a question traditional regression analyses are unable to: not only how strongly the response tracks the driver, but how long it takes to do so.
+Intuitively, setting $L = 0$ recovers ordinary regression, in which the entire effect must arrive within one time-step.
+
+
+\subsubsection{Combining DFA and DL regression to form DLFA}
+DLFA combines the concepts of DFA and DL regression by replacing the
+observed driver $w_t$ of Eq.~\ref{eq:dl} with the latent factor
+$x_{f,t}$ of Eq.~\ref{eq:dfa-trend}:
+\begin{align}
+  z_{j,t} &= \mu_j + \sum_{f=1}^{F}\sum_{\ell=0}^{L}
+             \beta_{j,f,\ell}\, x_{f,t-\ell} + \epsilon_{j,t},
+  &\epsilon_{j,t} &\sim \mathrm{N}\!\left(0,\sigma_j^2\right)
+  \label{eq:dlfa-state} \\
+  x_{f,t} &\sim \mathrm{N}(0,1)
+  \label{eq:dlfa-factor} \\
+  y_{j,t} &\sim g_j\!\left(z_{j,t},\, \boldsymbol\theta_j\right)
+  \label{eq:dlfa-meas}
+\end{align}
+Here, eq.~\ref{eq:dlfa-state} predicts $z_{j,t}$, the value of series $j$
+at time $t$ implied by the model, from an intercept $\mu_j$ giving
+the mean level of that series; the latent factors $x_{f,t}$ at delays
+$\ell = 0,\dots,L$; coefficients $\beta_{j,f,\ell}$ giving the effect
+of factor $f$ on series $j$ after a delay of $\ell$ time-steps; and
+process error $\epsilon_{j,t}$ with variance $\sigma_j^2$,
+representing variation in series $j$ that the factors do not explain.
+Eq.~\ref{eq:dlfa-factor} defines each factor as independent across both $f$ and $t$. Eq.~\ref{eq:dlfa-meas} then compares the
+prediction $z_{j,t}$ with the observation $y_{j,t}$, arising from a
+distribution $g_j$ with parameters $\boldsymbol\theta_j$.
+
+Note that Eq.~\ref{eq:dlfa-factor} departs from the random walk of
+Eq.~\ref{eq:dfa-trend}: each factor is deliberately memoryless, so
+that all temporal structure in $z_{j,t}$ arises through the lag
+coefficients rather than through persistence in the factor. This is
+often necessary because the two are often difficult to separate empirically. In particular, a
+persistent factor acting without delay and a memoryless factor spread
+over several time-steps both induce autocorrelation in $z_{j,t}$, and
+may generate similar patterns of covariance among the observed series.
+Fixing the factor to have no memory therefore ensures that
+$\boldsymbol\beta_{j,f}$ is interpretable as the delay structure of
+the response.
+
+Moreover, notice that the scalar loading $\lambda_{j,f}$ of a traditional DFA
+has thereby become $\boldsymbol\beta_{j,f} =
+(\beta_{j,f,0},\dots,\beta_{j,f,L})$, describing not only how
+strongly series $j$ responds to factor $f$, but over how many
+time-steps that response is spread. Setting $L = 0$ leaves the single
+term $\beta_{j,f,0}\,x_{f,t}$, so that each factor acts on every
+series without delay; additionally replacing
+Eq.~\ref{eq:dlfa-factor} with the random walk of
+Eq.~\ref{eq:dfa-trend} recovers DFA exactly. In a similar vein, $x_{f,t}$ as
+data rather than estimating it instead recovers distributed lag
+regression (Eq.~\ref{eq:dl}).
+
+Some constraints are likely needed before the model can be estimated. In particular, the variance of $x_{f,t}$ is fixed at one, as in DFA, because the
+coefficients and the factor are multiplied together in
+Eq.~\ref{eq:dlfa-state} and so cannot both be estimated. Additionally,
+reversing the sign of a factor and of every coefficient acting on it
+gives identical predictions, so one coefficient per factor is required
+to be positive. 
+
+\subsubsection{Parameterizing DLFA as a Gaussian Markov random field}
+
+Rather than being fitted by writing sequential equations, DLFA can
+generalized and be estimated as a single multivariate normal distribution. Let
+$\mathbf{v}$ contain all $J$ series $z_{j,t}$ and all $F$ factors
+$x_{f,t}$ across the $T$ time-steps, so that $\mathbf{v}$ has length
+$(J+F)T$. Every term in Eq.~\ref{eq:dlfa-state} expresses one element
+of $\mathbf{v}$ as a coefficient multiplying another element at some
+delay, so these terms can be constructed into a single path matrix $\mathbf{P}$
+holding each coefficient $\beta_{j,f,\ell}$ in the position linking
+factor $f$ at time $t-\ell$ to series $j$ at time $t$, and zeros
+elsewhere. The product $\mathbf{P}\mathbf{v}$ then reproduces the
+double summation of Eq.~\ref{eq:dlfa-state} for every series and time
+simultaneously.
+
+What remains of Eq.~\ref{eq:dlfa-state} is the error $\epsilon_{j,t}$,
+together with the factors themselves from Eq.~\ref{eq:dlfa-factor}.
+Both are normally distributed with mean zero and independent across
+series, factors, and time, so both can be written as a standard normal
+vector $\boldsymbol\delta$ rescaled by the appropriate standard
+deviation. Writing $\boldsymbol\Gamma$ for the diagonal matrix
+containing $\sigma_j$ in the positions belonging to each series and one
+in the positions belonging to each factor, the model becomes a single
+simultaneous equation:
+
+
+\begin{equation}
+  \mathbf{v} = \mathbf{P}\mathbf{v} + \boldsymbol\Gamma
+  \boldsymbol\delta, \qquad
+  \boldsymbol\delta \sim \mathrm{N}\!\left(\mathbf{0}, \mathbf{I}\right)
+  \label{eq:gmrf-sem}
+\end{equation}
+in which each element of $\mathbf{v}$ is expressed in terms of other
+elements of $\mathbf{v}$ plus an independent disturbance. Collecting
+terms in $\mathbf{v}$ gives:
+
+\begin{equation}
+  \left(\mathbf{I} - \mathbf{P}\right)\mathbf{v} =
+  \boldsymbol\Gamma \boldsymbol\delta
+  \label{eq:gmrf-solve}
+\end{equation}
+and, assuming that $\mathbf{I} - \mathbf{P}$ can be inverted,
+\begin{equation}
+  \mathbf{v} = \left(\mathbf{I} - \mathbf{P}\right)^{-1}
+  \boldsymbol\Gamma \boldsymbol\delta
+  \label{eq:gmrf-inv}
+\end{equation}
+Note that eq.~\ref{eq:gmrf-inv} shows that $\mathbf{v}$ is a linear
+transformation of the standard normal vector $\boldsymbol\delta$, which then gives (due to linear transformation of a multivariate normal):
+
+\begin{equation}
+  \mathbf{v} \sim \mathrm{N}\!\left(\mathbf{0},\;
+  \left(\mathbf{I} - \mathbf{P}\right)^{-1}
+  \boldsymbol\Gamma \boldsymbol\Gamma^\top
+  \left(\mathbf{I} - \mathbf{P}\right)^{-\top}\right)
+  \label{eq:gmrf-cov}
+\end{equation}
+The precision matrix is then given by the inverse of the covariance:
+\begin{equation}
+  \mathbf{Q} = \left(\mathbf{I} - \mathbf{P}\right)^\top
+               \boldsymbol\Gamma^{-\top}
+               \boldsymbol\Gamma^{-1}
+               \left(\mathbf{I} - \mathbf{P}\right)
+  \label{eq:gmrf-Q}
+\end{equation}
+where $\mathbf{Q}$ is assembled directly from the estimated
+coefficients and standard deviations, without requiring any matrix to
+be inverted, and because most of its entries are zero.
+
+This has several practical implications. Two elements of $\mathbf{v}$
+have a zero entry in $\mathbf{Q}$ whenever they are unrelated once all
+other elements are accounted for, and because each series is linked to
+only $L+1$ values of each factor, the majority of pairs are
+conditionally independent. $\mathbf{Q}$ is therefore sparse and remains
+efficient to use for matrix operations even when $\mathbf{v}$ is large. Moreover, the distribution of the observed values follows directly from
+Eq.~\ref{eq:gmrf-Q}, with the factors and any missing observations
+treated in the same way, so missing data in the observed time-series do
+not require additional processing.
+
+
+\subsubsection{Demonstration of DLFA with spatial recruitment indices}
+We demonstrate DLFA using recruitment deviations for sablefish across
+seven regions spanning the Northeast Pacific. Five of these regions, the
+Bering Sea, Aleutian Islands, and western, central, and eastern Gulf of
+Alaska, are estimated within a single spatially explicit stock
+assessment. The sixth and seventh time-series, the Alaska state waters and U.S. West Coast, are estimated in separate single-region assessments, and are therefore not connected to the federal Alaska regions through any shared estimation framework. Recruitment in these
+regions is thought to respond to broad-scale environmental conditions,
+but not necessarily at the same time, motivating a model in which a
+shared driver may act on different regions after different delays.
+
+We therefore fit Eqs.~\ref{eq:dlfa-state}--\ref{eq:dlfa-meas} with
+$J = 7$ regions and $T = 44$ years spanning 1980 to 2023. Each series
+is standardized to a mean of zero and a standard deviation of one
+before fitting, such that $\mu_j$ is fixed at zero and the estimated
+coefficients are in units of each region's standard deviation. We estimate a single factor ($F = 1$), acting on each region at delays of up to three years ($L = 3$). The choice of a single factor reflects our interest in whether one broad-scale driver is sufficient to explain covariation among all six regions, and the three-year maximum delay was chosen to span the range of plausible lags while retaining enough years to estimate the later coefficients. Following the constraints of DLFA described in previous equations, the variance of the factor is fixed at one (initial sensitivity tests showed that model results were generally invariant to this assumption). 
+
+Recruitment deviations are treated as observed without error, so
+$z_{j,t}$ is set equal to the standardized deviation in every region
+and year and Eq.~\ref{eq:dlfa-meas} is not required. The residual
+variance $\sigma_j^2$ therefore absorbs all variation in each region
+not attributable to the shared factor and distributed lags. The model is fitted using the R package \texttt{dsem} with estimation in Template Model Builder (TMB), where the latent factors are
+integrated out using the Laplace approximation. All code associated with this study can be found at \textbf{github link}. 
+
+\section{Results}
+\label{sec:results}
+
+\begin{itemize}
+    \item some synchrony
+    \item some delay in recruitment for more western regions? 
+    \item some regions with shared response, others are weaker (might be some other factor driving dynamics)
+\end{itemize}
+
+\section{Discussion}
+\label{sec:discussion}
+
+
+\begin{itemize}
+\item DLFA estimates an unobserved shared driver and region-specific
+delays jointly; the model fits and the delays are identifiable
+\item Sablefish: synchrony across regions, delayed response in western
+regions, weaker response in others
+\item model limitations?
+\item Best used as an exploratory tool: identifies that a shared driver
+exists and when each region responds, narrowing the search for what it
+is and allowing for more process research questinos
+\item Extends naturally to species rather than regions, or to other
+processes (condition, growth, maturity)
+\item DLFA required no new estimation machinery; utility of genearl graphical models and that sort of framework ...
+\item DFA, VAR, distributed lags, and state-space ARIMA are the same
+object with different paths; we encourage wider use of these general
+interfaces
+\end{itemize}
+
+\section*{Acknowledgements}
+
+\section*{Data availability}
+
+\clearpage
+\bibliography{references}
+
+\end{document}
