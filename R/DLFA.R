@@ -86,12 +86,35 @@ sem <- "
   F1 <-> F1, 0, NA, 1
 "
 
+# RUN WITH `getsd = FALSE` to see constraints needed
 fit <- dsem(
   tsdata = tsdat,
   sem = sem,
   family = fam,
-  control = dsem_control(trace = 1)
+  control = dsem_control(
+    trace = 1,
+    getsd = FALSE
+  )
 )
+
+#
+sem_constrained = paste0( sem,
+"
+  AI <-> AI, 0, NA, 0.01
+  BS <-> BS, 0, NA, 0.01
+")
+
+# RUN again
+fit <- dsem(
+  tsdata = tsdat,
+  sem = sem_constrained,
+  family = fam,
+  control = dsem_control(
+    trace = 1,
+    getsd = TRUE
+  )
+)
+
 
 s_sat <- summary(fit)
 s_sat
