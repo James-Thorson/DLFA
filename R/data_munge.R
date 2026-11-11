@@ -86,14 +86,7 @@ ss3_ssb <- SPoRC::sgl_rg_wc_sablefish_data$ss3$SSB[
   ss3_year_idx
 ]
 
-# Recruitment deviations / age-3 abundance
-ss3_age3 <- rowSums(
-  SPoRC::sgl_rg_wc_sablefish_data$ss3$NAA[, 3, ]
-)[ss3_year_idx]
-
-ss3_recdev <- (ss3_age3 - mean(ss3_age3)) / sd(ss3_age3)
-
-# Get recruitment deviations (approximate for age-2)
+# Get recruitment deviations and SEs from the WC SPoRC model (age-0, indexed by year class)
 sr  <- wcsabie$sdrep
 map <- wcsabie$mapping$ln_RecDevs
 
@@ -104,8 +97,11 @@ se_est <- sqrt(diag(sr$cov.fixed))[names(sr$par.fixed) == 'ln_RecDevs']
 se_full <- rep(NA_real_, length(map))
 se_full[!is.na(map)] <- se_est[as.integer(map[!is.na(map)])]
 
-# now index by year
-ss3_recdev_se <- se_full[ss3_year_idx]
+# year class y recruits at age-2 in year y + 2, so shift by 2 years to line up with
+# the other series (all indexed by year of recruitment at age-2)
+wc_idx <- match(ss3_years - 2, wcsabie$data$years)
+ss3_recdev    <- as.vector(wcsabie$rep$ln_RecDevs)[wc_idx]
+ss3_recdev_se <- se_full[wc_idx]
 
 # SS3 is Alaska-wide, so give it a single region ------------------------
 ss3_ts <- tibble(
@@ -126,7 +122,7 @@ nsei_rec <- tibble(
   Year     = years,
   Rec      = nsei$pred_rec,
   SSB      = rowSums(nsei$spawn_biom)[-52],
-  RecDevs  = (nsei$pred_rec - mean(nsei$pred_rec)) / sd(nsei$pred_rec),
+  RecDevs  = nseisdrep$rep$par.fixed[names(nseisdrep$rep$par.fixed) == 'log_rec_devs'], # log rec devs (age-2), same as SEs
   RecDevs_SE =  sqrt(diag(nseisdrep$rep$cov.fixed)[names(diag(nseisdrep$rep$cov.fixed)) == 'log_rec_devs'])
 )
 

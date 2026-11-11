@@ -7,7 +7,7 @@ library(cowplot)
 # ---- Data ----------------------------------------------------------------
 
 long <- read.csv(here('outputs', 'ts_df.csv'))
-long <- subset(long, Year >= 1990 & Year <= 2023)
+long <- subset(long, Year >= 1990 & Year <= 2023) # T = 34 (age comp data start ~1990)
 
 wide <- tapply(
   long$RecDevs,
@@ -27,6 +27,9 @@ wide_raw <- wide
 wide <- scale(wide)
 ctr <- attr(wide, "scaled:center")
 sdv <- attr(wide, "scaled:scale")
+
+# put SEs on the same scale as the standardized series
+wide_se <- sweep(wide_se, 2, sdv, "/")
 
 regions <- colnames(wide)
 yrs <- as.numeric(rownames(wide))
@@ -99,11 +102,14 @@ fit <- dsem(
 
 summary(fit)
 
-# adding constraints on process error
+# adding constraints on process error (these SDs go to ~0 when estimated;
+# note that dsem fixes the SD, so variance = 1e-4)
 sem_constrained = paste0( sem,
 "
   AI <-> AI, 0, NA, 0.01
   BS <-> BS, 0, NA, 0.01
+  WGOA <-> WGOA, 0, NA, 0.01
+  EGOA <-> EGOA, 0, NA, 0.01
 ")
 
 # RUN again
@@ -122,6 +128,7 @@ s_sat <- summary(fit)
 s_sat
 
 fit$sdrep
+max(abs(fit$obj$gr(fit$opt$par))) # convergence check (< 1e-3)
 
 # ---- Stepwise path selection ---------------------------------------------
 model_options <- c(
@@ -159,6 +166,8 @@ model_shared <- "
 
   AI <-> AI, 0, NA, 0.01
   BS <-> BS, 0, NA, 0.01
+  WGOA <-> WGOA, 0, NA, 0.01
+  EGOA <-> EGOA, 0, NA, 0.01
 
   F1 <-> F1, 0, NA, 1
 "
@@ -169,7 +178,8 @@ step_fit <- dsem::stepwise_selection(
   model_shared  = model_shared,
   tsdata = tsdat,
   family = fam,
-  quiet = TRUE
+  quiet = TRUE,
+  control = dsem_control(quiet = TRUE)
 )
 
 cat(step_fit$model)
@@ -187,6 +197,7 @@ s_step <- summary(refit)
 s_step
 
 refit$sdrep
+max(abs(refit$obj$gr(refit$opt$par))) # convergence check (< 1e-3)
 AIC(fit)
 AIC(refit)
 
@@ -235,7 +246,7 @@ p_conv <- ggplot(plot_df, aes(x = Year)) +
   geom_line(aes(y = obs), lty = 2, lwd = 1.1, col = 'blue') +
   geom_line(aes(y = conv), lwd = 1.2) +
   facet_wrap(~Region) +
-  labs(y = "Standardized recruitment deviation") +
+  labs(y = "Standardized recruitment index") +
   theme_bw(base_size = 15)
 
 p_conv
@@ -245,24 +256,24 @@ p_conv
 p_comp <- ggplot(plot_df, aes(x = Year)) +
   geom_hline(yintercept = 0, linetype = "dotted",
              linewidth = 0.5, colour = "grey60") +
-  geom_line(aes(y = obs,  colour = "Observed",    linetype = "Observed"),
+  geom_line(aes(y = obs,  colour = "Assessment output", linetype = "Assessment output"),
             linewidth = 1.0) +
-  geom_line(aes(y = dlfa, colour = "Latent Factor",        linetype = "Latent Factor"),
+  geom_line(aes(y = dlfa, colour = "Latent factor",     linetype = "Latent factor"),
             linewidth = 1.1) +
-  geom_line(aes(y = conv, colour = "Convolution (DLFA)", linetype = "Convolution (DLFA)"),
+  geom_line(aes(y = conv, colour = "Convolution",       linetype = "Convolution"),
             linewidth = 1.1) +
   facet_wrap(~Region, ncol = 1) +
   scale_colour_manual(values = c(
-    "Observed"    = "#0072B2",
-    "Latent Factor"        = "#D55E00",
-    "Convolution (DLFA)" = "#333333"
+    "Assessment output" = "#0072B2",
+    "Latent factor"     = "#D55E00",
+    "Convolution"       = "#333333"
   )) +
   scale_linetype_manual(values = c(
-    "Observed"    = "dashed",
-    "Latent Factor"        = "solid",
-    "Convolution (DLFA)" = "solid"
+    "Assessment output" = "dashed",
+    "Latent factor"     = "solid",
+    "Convolution"       = "solid"
   )) +
-  labs(x = 'Year', y = "Standardized recruitment deviation",
+  labs(x = 'Year', y = "Standardized recruitment index",
        colour = 'Type', linetype = 'Type') +
   theme_bw(base_size = 17) +
   theme(legend.position = 'top')
