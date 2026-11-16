@@ -1,1 +1,1 @@
-# Distributed Lag Factor Analysis (DLFA)
+# Dynamic Lagged Factor Analysis (DLFA)

@@ -68,8 +68,7 @@ positive lagged response in the Bering Sea, Aleutian Islands, and
 Chatham Strait relative to the Gulf of Alaska. Similarly, a simulation
 experiment shows that lagged responses are estimable for 40-year
 time-series without substantial bias, albeit with modest precision. We
-recommend
-greater consideration of time-lags in exploratory factor models, and
+recommend greater consideration of time-lags in exploratory factor models, and
 that multi-area stock assessment models consider representing lagged
 correlations among process errors.
 \end{abstract}
@@ -145,7 +144,7 @@ temporal lags. In the
 following, we first describe the foundations of DFA, followed by
 distributed lag regression, and then show how these approaches can be
 combined to provide new ecological insights. Our contribution is to
-show how DLFA can be fitted as a Gaussian Markov random field using
+show how DLFA can be fitted as a Gaussian Markov random field (GMRF) \citep{rue_gaussian_2005} using
 existing software, and that it can be easily used and extended by
 fisheries scientists. Results demonstrate that lagged responses to a
 latent factor are estimable from multidecadal time-series, and highlight
@@ -177,6 +176,7 @@ $x_{f,t}$, $f \in \{1,\dots,F\}$:
   &\eta_{f,t} &\sim \mathrm{N}\!\left(0, 1\right)
   \label{eq:dfa-trend}
 \end{align}
+
 where $\mu_j$ is a time-invariant intercept for series $j$;
 $\lambda_{j,f}$ is the loading of observed series $j$ onto latent factor
 $f$, described in a $J \times F$ matrix $\boldsymbol\Lambda =
@@ -308,8 +308,7 @@ stock_dynamic_2016}.
 
 Rather than being fitted by writing sequential equations (as described
 above for intuition), DLFA can be generalized and estimated as a single
-multivariate normal distribution. In particular, this distribution is a
-Gaussian Markov random field (GMRF), which is a multivariate normal
+multivariate normal distribution. In particular, this distribution is a GMRF, which is a multivariate normal
 distribution where most variables are only directly related to a few
 others, such that its precision matrix (i.e., the inverse of the
 covariance matrix) is mostly zeros \citep{rue_gaussian_2005}. Let $\mathbf{v}$ contain all $J$
@@ -691,8 +690,11 @@ Model Builder (TMB), without which this study would not be possible.
 
 \section*{Data availability}
 All data and code to reproduce results are available in
-\url{www.github.com/James-Thorson/DLFA}, and the version used in this
+\url{https://github.com/chengmatt/DLFA}, and the version used in this
 study is archived at [Zenodo DOI].
+
+\section*{Competing interests}
+No competing interests are declared.
 
 \clearpage
 \bibliography{references}

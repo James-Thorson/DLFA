@@ -16,7 +16,7 @@
 {\Large\bfseries Response to reviewers}
 \end{center}
 
-We thank both reviewers for their careful and constructive reviews.
+We thank both reviewers for their careful and constructive reviews and the editors for their handling of the manuscript.
 Reviewer 1 re-ran our code and provided scripts, which was very helpful
 and identified two errors in our implementation: the simulation treated
 the factor as observed, and the assessment standard errors were not
@@ -161,11 +161,11 @@ was recovered in 87\%, 82\%, and 85\% of replicates for areas 1--3, and
 the median correlation between the estimated and simulated factor was
 0.76. These results are generally consistent with the reviewer's Table 1
 and Fig. R2. We have now updated the simulation code, Section 2.7
-(L271--275), the Results (L304--312), Fig. 2, and the Abstract (L19--20)
+(L272--276), the Results (L305--313), Fig. 2, and the Abstract (L19--20)
 with the corrected results.
 
 Following the reviewer's suggestion, we have also added a parametric
-bootstrap that mirrors the application (Section 2.6; L251--259). In
+bootstrap that mirrors the application (Section 2.6; L252--260). In
 particular, we simulated 200 datasets from the selected model (J = 7, T
 = 34, L = 3, measurement error from the assessment SEs), and repeated
 the stepwise selection for each. When refitting the true model, we used
@@ -180,8 +180,8 @@ paths were selected in 17\% of replicates on average (at most 29\%). The
 estimated factor was also highly correlated with the simulated factor
 (median = 0.92). All 200 refits of the true model converged, with small
 bias (\textless{} 0.02) and coverage between 0.92 and 0.98. We now
-summarize these results in the Results (L298--303) and note the
-retention of spurious paths in the Discussion (L363--364).
+summarize these results in the Results (L299--304) and note the
+retention of spurious paths in the Discussion (L364--365).
 
 \textbf{2. Identifiability of the lag profiles}
 
@@ -228,24 +228,41 @@ accordingly.
 
 \textbf{Author response:} Thanks for noting this important issue. We
 agree that fixing the factor variance and sign is not sufficient to
-identify the lag profiles. We have: 1) replaced ``ensures'' (L123--125),
-2) added a paragraph to Section 2.3 (L143--155) noting that the
+identify the lag profiles. We have: 1) replaced ``ensures'' (L124--126),
+2) added a paragraph to Section 2.3 (L144--156) noting that the
 covariance among series is unchanged by a common shift of all lag
 profiles (within lags 0 to L) or by reflecting a root shared by all
 profiles, 3) restricted our application to F = 1 and noted that
-additional constraints are needed for F \textgreater{} 1 (L149--155),
+additional constraints are needed for F \textgreater{} 1 (L150--156),
 and 4) stated that we anchor the timing of the factor by including a
 lag-zero path for every series, so that lagged coefficients are
 interpreted as delays relative to the contemporaneous response
-(L147--149 and L239--241). In our application, the saturated model had
+(L148--150 and L240--242). In our application, the saturated model had
 its largest coefficients at lag two in most regions, whereas the
 selected model (with lag-zero paths included for every series) was
 preferred by AIC (\(\Delta\)AIC = 5.5), and we now report this in the
-Results (L292--294). However, we did not attempt a formal proof of
+Results (L293--295). However, we did not attempt a formal proof of
 identifiability, as we felt that this was beyond the scope of the study,
 given that we sought to introduce the DLFA method to a general fisheries
 audience. Nevertheless, we have included text describing these
 limitations and how we anchor the model in practice.
+
+We also note that the transformations described by the reviewer must
+keep each lag profile within lags 0 to L (i.e., ``that keeps each
+profile of degree at most L''). When only a small number of lags are
+considered (e.g., L = 1), there is relatively little room for
+transformations that keep responses within this narrow range of lags. In
+our application, the selected model only retained lagged paths up to two
+years in three regions (with lag-zero paths included for every series),
+and we are therefore less concerned about this in practice.
+
+We note that if we were provided (i.e., through TMB) the 2nd
+order AD for the Laplace-approximated log-marginal likelihood,
+we could detect non-estimability to machine precision. Given that
+a non-identifiable model is always non-estimable, confirming estimability
+to machine precision would be strong evidence of identifiability. However, we are currently
+using finite differences for the Hessian of the approximated log-marginal likelihood,
+and this remains another direction for future research.
 
 \textbf{3. Measurement-error model for assessment output}
 
@@ -290,14 +307,14 @@ estimates move by at most 0.05 when the fixed value ranges from 0.01 to
 
 \textbf{Author response:} \emph{Units.} Thanks for catching this.
 Standard errors are now divided by the same SD used to standardize each
-series (L218--220). In standardized units, median SEs are 0.50 (BS),
+series (L219--221). In standardized units, median SEs are 0.50 (BS),
 0.67 (AI), 1.04 (WGOA), 1.21 (CGOA), 1.56 (EGOA), 0.59 (CS), and 0.13
 (WC).
 
 \emph{Common quantity and cohort alignment.} Agreed, all seven series
 are now log recruitment deviations with standard errors from the same
 assessment model, indexed by the year of recruitment at age-2
-(L209--216). For the CS, we now use the log recruitment deviations from
+(L210--217). For the CS, we now use the log recruitment deviations from
 the NSEI model (previously, standardized natural-scale recruitment). For
 the WC, we now use log recruitment deviations from a single-region
 model, which are estimated at age-0 and were therefore shifted forward
@@ -308,13 +325,13 @@ age-2 abundance paired with SEs from a different cohort).
 shrinkage estimates, and this likely explains why some process SDs
 approached zero. With the updated inputs, the process SDs of the AI, BS,
 WGOA, and EGOA approached zero, and we fixed these at 0.01
-(\(\sigma_j^2 = 10^{-4}\)). We have now stated this rule (L230--235),
-included text discussing this issue (L368--374; citing Brooks and Deroba
+(\(\sigma_j^2 = 10^{-4}\)). We have now stated this rule (L231--236),
+included text discussing this issue (L369--375; citing Brooks and Deroba
 2015), and evaluated the sensitivity of results to the fixed value (0.01
-to 0.5; L249--251 and L296--298), where lagged coefficients changed by
+to 0.5; L250--252 and L297--299), where lagged coefficients changed by
 at most 0.06. We also note in the Discussion that series derived from a
 common assessment may covary for reasons unrelated to any ecological
-driver (L369--371).
+driver (L370--372).
 
 \textbf{4. Correspondence between code, text and figures}
 
@@ -335,12 +352,12 @@ it.
 
 \textbf{Author response:} Thanks for pointing this out. The text has
 been modified to state the window used in the code (1990--2023, T = 34;
-L217). The start year is somewhat arbitrary, as the recruitment
+L218). The start year is somewhat arbitrary, as the recruitment
 time-series extend back to 1960, and we started in 1990 as this is
 roughly when age composition data become available to inform recruitment
 estimates. The text has also been modified to state that dsem fixes a
 standard deviation (\(\sigma_j = 0.01\), \(\sigma_j^2 = 10^{-4}\);
-L231), and all figures were regenerated from the revised code.
+L232), and all figures were regenerated from the revised code.
 
 \textbf{5. Model selection and post-selection inference}
 
@@ -364,20 +381,20 @@ stated.
 
 \textbf{Author response:} Thanks for these suggestions. We have now: 1)
 stated that lag-zero paths were included in all models rather than
-retained (L239--241 and L284--286), 2) removed ``estimated more
+retained (L240--242 and L285--287), 2) removed ``estimated more
 precisely'' and noted that SEs are conditional on the selected model
-(L291--292 and L361--363; Berk et al.~2013), 3) reported path retention
-under a parametric bootstrap (L298--301; see comment 1), and 4) stated
+(L292--293 and L362--364; Berk et al.~2013), 3) reported path retention
+under a parametric bootstrap (L299--302; see comment 1), and 4) stated
 that the marginal AIC is based on a restricted likelihood, which is
 valid because all candidate models share the same mean structure
-(L241--243). We also agree that a structured lag profile (Almon 1965;
+(L242--244). We also agree that a structured lag profile (Almon 1965;
 Gasparrini et al.~2010) is a great suggestion, and have included text in
-the Discussion highlighting this as future work (L364--366). However, we
+the Discussion highlighting this as future work (L365--367). However, we
 did not evaluate out-of-sample prediction, as we felt that additional
 model validation specific to the sablefish application was beyond the
 scope of the study, given that we sought to introduce the DLFA method.
 Nevertheless, we note in the Discussion that forecast performance can be
-used for model validation (L353--359).
+used for model validation (L354--360).
 
 \textbf{6. Relation to existing dynamic factor models}
 
@@ -398,7 +415,7 @@ with lagged loadings have a long history in psychometrics and
 econometrics (L63--66; Molenaar 1985; Peña and Box 1987; Forni et
 al.~2000; Stock and Watson 2016), and that our contribution is to show
 how DLFA can be fitted as a GMRF using existing software, so that it can
-be easily used and extended by fisheries scientists (L70--72).
+be easily used and extended by fisheries scientists (L70--73).
 
 \textbf{7. Interpretation of lags in cohort-indexed series}
 
@@ -466,20 +483,20 @@ WC 3 & AI 1; BS 1; CS 3; WC 3 & BS 1; AI 3 \\
 \end{quote}
 
 \textbf{Author response:} Agreed, all series are now indexed by the year
-of recruitment at age-2 (L209--216; see comment 3). We thank the
+of recruitment at age-2 (L210--217; see comment 3). We thank the
 reviewer for the leave-out analysis, and now note in the Discussion that
 lagged coefficients in the AI and BS are likely influenced by the 2016
 year class, and that withholding the observations attributed to this
-cohort in each series would be a cleaner test (L327--329). However, we
+cohort in each series would be a cleaner test (L328--330). However, we
 do not provide additional analyses / discussion on this matter, as it
 starts to get beyond the scope of introducing a new analysis idea for
 fisheries scientists. Nevertheless, the Discussion also notes that lags
 can arise from cohort misalignment, ageing error, movement at older
-ages, or later detection due to selectivity (L323--325), and that the
+ages, or later detection due to selectivity (L324--326), and that the
 later appearance of the 2016 year class in the AI and BS is consistent
-with both an ecological delay and these alternatives (L325--327). We
+with both an ecological delay and these alternatives (L326--328). We
 have also removed the spawning biomass argument, and now describe the
-positive lag-zero coefficients (L289--291) as a shared sign.
+positive lag-zero coefficients (L290--292) as a shared sign.
 
 \subsection{Minor comments}\label{minor-comments}
 
@@ -496,7 +513,7 @@ because \(\mathbf{P}\tilde{\boldsymbol{\mu}} = \boldsymbol{0}\).
 \end{quote}
 
 \textbf{Author response:} Thanks for noting this. The intercepts have
-been added to Eq. 7 (L174--175), and Eqs. 8--10 have been updated.
+been added to Eq. 7 (L175--176), and Eqs. 8--10 have been updated.
 
 \begin{quote}
 \textbf{2.} L148: since every path runs from a factor to a series,
@@ -509,7 +526,7 @@ which requires \(\sigma_j > 0\).
 
 \textbf{Author response:} Thanks, the text has been modified to note
 that \((\mathbf{I} - \mathbf{P})^{-1} = \mathbf{I} + \mathbf{P}\) always
-exists (L181--182), and that Eq. 11 requires \(\sigma_j > 0\) (L186).
+exists (L182--183), and that Eq. 11 requires \(\sigma_j > 0\) (L187).
 
 \begin{quote}
 \textbf{3.} L154--157: two factor values are conditionally dependent
@@ -519,7 +536,7 @@ only when some series loads on both lags, so the factor block of
 
 \textbf{Author response:} This has been revised as suggested (factor
 block of \(\mathbf{Q}\) is banded with bandwidth at most \(L\);
-L190--193).
+L191--194).
 
 \begin{quote}
 \textbf{4.} L158--160: the distribution of the observations follows
@@ -529,7 +546,7 @@ Laplace approximation is then exact.
 
 \textbf{Author response:} This has been revised as suggested
 (distribution follows after integrating out latent states; Laplace
-approximation is exact here; L194--196).
+approximation is exact here; L195--197).
 
 \begin{quote}
 \textbf{5.} Eq. (4): state how \(x_{f,t-\ell}\) is treated for
@@ -539,7 +556,7 @@ approximation is exact here; L194--196).
 
 \textbf{Author response:} Thanks for the suggestion. We have added a
 sentence noting that lagged terms before the first year are dropped, so
-the variance of z is smaller in the first L years (L115--117).
+the variance of z is smaller in the first L years (L116--118).
 
 \begin{quote}
 \textbf{6.} L124: DFA is recovered only up to the distinction between
@@ -549,7 +566,7 @@ separately identified when \(g_j\) is Gaussian with free variance.
 
 \textbf{Author response:} Agreed, we have added text noting that
 measurement and process errors are not separately identifiable when
-\(g_j\) is Gaussian with estimated variance (L132--133).
+\(g_j\) is Gaussian with estimated variance (L133--134).
 
 \begin{quote}
 \textbf{7.} L126--130: the positivity constraint is not implemented in
@@ -559,7 +576,7 @@ the code; describe the sign convention actually used.
 \textbf{Author response:} Thanks for pointing this out. This has been
 revised to reflect what is done in the code (i.e., we flip the sign of
 the factor after fitting so that coefficients sum to a positive value;
-L139--142).
+L140--143).
 
 \begin{quote}
 \textbf{8.} L83--85 and L127: the variance fixed in DFA is that of the
@@ -567,7 +584,7 @@ innovation, not of the random-walk trend.
 \end{quote}
 
 \textbf{Author response:} This has been modified to refer to fixing the
-innovation variance in DFA (L86--88 and L137).
+innovation variance in DFA (L87--89 and L138).
 
 \begin{quote}
 \textbf{9.} L124--125: a verb is missing (``treating \(x_{f,t}\) as data
@@ -575,7 +592,7 @@ recovers \ldots{}''); L133: ``can generalized and be estimated''.
 \end{quote}
 
 \textbf{Author response:} Thanks for noting these, both have been
-corrected (L133--135 and L158).
+corrected (L134--136 and L159).
 
 \begin{quote}
 \textbf{10.} L193 and Fig. 1: the factor values are conditional modes,
@@ -594,15 +611,15 @@ should read \(\boldsymbol{\beta}_{1,1} = (1, 0.5, 0)\), and likewise for
 areas 2 and 3; L208: give the true process standard deviation (1).
 \end{quote}
 
-\textbf{Author response:} This has been corrected (L265--270), and the
-true process SD (1) is now given (L270).
+\textbf{Author response:} This has been corrected (L266--271), and the
+true process SD (1) is now given (L271).
 
 \begin{quote}
 \textbf{12.} L231: ``lag-3 response for area-3'' should read ``lag-2''.
 \end{quote}
 
 \textbf{Author response:} Thanks for catching this, this has been
-corrected to ``lag-2'' (L308--309).
+corrected to ``lag-2'' (L309--310).
 
 \begin{quote}
 \textbf{13.} L224: the Western Gulf of Alaska responded only
@@ -611,7 +628,7 @@ contemporaneously; name the Bering Sea and Aleutian Islands instead of
 \end{quote}
 
 \textbf{Author response:} Agreed, we now name the BS, AI, and CS
-(L17--19 and L319--320).
+(L17--19 and L320--321).
 
 \begin{quote}
 \textbf{14.} The factor's conditional mode of about 4 in 2018 is large
@@ -623,8 +640,8 @@ one year.
 
 \textbf{Author response:} Thanks for the suggestion. We have included
 text highlighting a heavy-tailed factor (Anderson et al.~2017) as future
-work (L367--368), and note the influence of the 2016 year class in the
-Discussion (L325--329; see comment 7). However, we did not conduct a
+work (L368--369), and note the influence of the 2016 year class in the
+Discussion (L326--330; see comment 7). However, we did not conduct a
 posterior-predictive check, given that DLFA is fitted here using maximum
 likelihood rather than in a Bayesian framework (i.e., a
 posterior-predictive check is not directly applicable). While a
@@ -642,7 +659,7 @@ convergence, bias, RMSE and coverage.
 \textbf{Author response:} Thanks for noting this. Fig. 1 legend now
 matches the caption and the y-axis reads ``Standardized recruitment
 index''. Fig. 2 now labels parameters as \(\beta\) and \(\sigma\), and
-the caption and text (L304--307) report convergence, bias, RMSE, and
+the caption and text (L305--308) report convergence, bias, RMSE, and
 coverage.
 
 \begin{quote}
@@ -663,8 +680,8 @@ references lose capitalisation (``alaska'', ``u.s.'') or are incomplete
 \end{quote}
 
 \textbf{Author response:} Thanks for noting these, all have been
-corrected (L355--356 for the two typos; L349, L359, and L368 for First,
-Second, and Third; L393; and the reference list).
+corrected (L356--357 for the two typos; L350, L360, and L369 for First,
+Second, and Third; L394; and the reference list).
 
 \begin{quote}
 \textbf{18.} The data availability statement should point to an
@@ -673,7 +690,7 @@ figures.
 \end{quote}
 
 \textbf{Author response:} This has been updated to point to an archived
-version (L399--400).
+version (L400--401).
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -688,7 +705,7 @@ text explaining that each element of \(\mathbf{v}\) is a function of
 other elements (\(\mathbf{Pv}\)) plus its own disturbance, which is the
 process error for a series and the factor value itself for a factor, and
 that these are independent because \(\boldsymbol{\delta}\) is standard
-normal and \(\boldsymbol{\Gamma}\) is diagonal (L175--180).
+normal and \(\boldsymbol{\Gamma}\) is diagonal (L176--181).
 
 \begin{quote}
 \textbf{2.} Ln. 200: Define GMRF
@@ -696,8 +713,8 @@ normal and \(\boldsymbol{\Gamma}\) is diagonal (L175--180).
 
 \textbf{Author response:} GMRF has now been defined at its first use in
 Section 2.4 (a multivariate normal distribution with a sparse precision
-matrix; L158--162), and Ln. 200 now refers to the ``GMRF formulation''
-(L263--264).
+matrix; L159--163), and Ln. 200 now refers to the ``GMRF formulation''
+(L264--265).
 
 \begin{quote}
 \textbf{3.} Figure 2: Describe what the violin, bar and white box
